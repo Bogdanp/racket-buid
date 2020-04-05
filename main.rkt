@@ -21,7 +21,7 @@
 ;; to guarantee that monotonically-generated ids during the same
 ;; centisecond can effectively never exhaust the randomness space.
 (define RANDOMNESS_MASK
-  #x0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111)
+  #b0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111)
 
 (define (current-centiseconds)
   (quotient (- (current-milliseconds) EPOCH) 10))
