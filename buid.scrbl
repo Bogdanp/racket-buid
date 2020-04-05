@@ -13,6 +13,9 @@ This package provides an implementation of flake ids that are
 lexicographically-sortable and highly unlikely to collide in a
 distributed system.
 
+BUIDs can (and are meant to!) be safely stored inside a PostgreSQL
+UUID field.
+
 
 @section{Spec}
 
