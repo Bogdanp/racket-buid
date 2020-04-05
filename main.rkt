@@ -19,7 +19,7 @@
 
 ;; We zero out the most significant bit of the randomness component
 ;; to guarantee that monotonically-generated ids during the same
-;; millisecond can effectively never exhaust the randomness space.
+;; centisecond can effectively never exhaust the randomness space.
 (define RANDOMNESS_MASK
   #x0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111)
 
