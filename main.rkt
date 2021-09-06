@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require racket/contract
-         racket/format
+         racket/math
          "private/base62.rkt"
          "private/random.rkt")
 
@@ -24,35 +24,38 @@
   #b0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111)
 
 (define (current-centiseconds)
-  (quotient (- (current-milliseconds) EPOCH) 10))
+  (exact-truncate (/ (- (current-inexact-milliseconds) EPOCH) 10)))
 
 (define (pad s w)
-  (~a s #:width w #:align 'right #:left-pad-string "0"))
+  (define diff (- w (string-length s)))
+  (if (<= diff 0)
+      s
+      (string-append-immutable
+       (make-string diff #\0)
+       s)))
+
+(struct buid-state (t n))
 
 (define (make-buid-factory)
-  (define sema (make-semaphore 1))
-  (define rs (make-randomness-source (* 1 1024 1024)))
-  (define (randomness)
-    (bitwise-and
-     (unpack (randomness-take! rs 11))
-     RANDOMNESS_MASK))
-
-  (define ot -1)
-  (define on 0)
+  (define s-box (box (buid-state -1 0)))
+  (define rss (make-weak-hasheq))
   (lambda ()
-    (define-values (t n)
-      (call-with-semaphore sema
-        (lambda ()
-          (define t (current-centiseconds))
-          (define n
-            (if (= ot t)
-                (add1 on)
-                (randomness)))
-
-          (begin0 (values t n)
-            (set! ot t)
-            (set! on n)))))
-
+    (define rs
+      (hash-ref! rss
+                 (current-thread)
+                 (λ () (make-randomness-source (* 10000 11)))))
+    (define s (unbox* s-box))
+    (define t (current-centiseconds))
+    (define n
+      (if (= t (buid-state-t s))
+          (add1 (buid-state-n s))
+          (bitwise-and
+           (unpack (randomness-take! rs 11))
+           RANDOMNESS_MASK)))
+    (let loop ()
+      (cond
+        [(box-cas! s-box s (buid-state t n))]
+        [(eq? (unbox* s-box) s) (loop)]))
     (make-buid-string t n)))
 
 (define (make-buid-string t r)
