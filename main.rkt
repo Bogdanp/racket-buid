@@ -2,8 +2,8 @@
 
 (require racket/contract
          racket/math
-         "private/base62.rkt"
-         "private/random.rkt")
+         racket/random
+         "private/base62.rkt")
 
 (provide
  make-buid-factory
@@ -26,42 +26,36 @@
 (define (current-centiseconds)
   (exact-truncate (/ (- (current-inexact-milliseconds) EPOCH) 10)))
 
-(define (pad s w)
-  (define diff (- w (string-length s)))
-  (if (<= diff 0)
-      s
-      (string-append-immutable
-       (make-string diff #\0)
-       s)))
-
-(struct buid-state (t n))
+(struct state (t n))
 
 (define (make-buid-factory)
-  (define s-box (box (buid-state -1 0)))
-  (define rss (make-weak-hasheq))
+  (define s-box
+    (box (state -1 0)))
   (lambda ()
-    (define rs
-      (hash-ref! rss
-                 (current-thread)
-                 (λ () (make-randomness-source (* 10000 11)))))
     (define s (unbox* s-box))
     (define t (current-centiseconds))
     (define n
-      (if (= t (buid-state-t s))
-          (add1 (buid-state-n s))
+      (if (= t (state-t s))
+          (add1 (state-n s))
           (bitwise-and
-           (unpack (randomness-take! rs 11))
+           (unpack (crypto-random-bytes 11))
            RANDOMNESS_MASK)))
-    (let loop ()
-      (cond
-        [(box-cas! s-box s (buid-state t n))]
-        [(eq? (unbox* s-box) s) (loop)]))
+    (try-set-box! s-box s (state t n))
     (make-buid-string t n)))
 
 (define (make-buid-string t r)
-  (string-append-immutable
-   (pad (number->base62-string t) 7)
-   (pad (number->base62-string r) 15)))
+  (define out-s (make-string 22 #\0))
+  (define t-str (number->base62-string t))
+  (define r-str (number->base62-string r))
+  (string-copy! out-s (max 0 (- 7  (string-length t-str))) t-str)
+  (string-copy! out-s (max 7 (- 22 (string-length r-str))) r-str)
+  (string->immutable-string out-s))
+
+(define (try-set-box! b old-v new-v)
+  (let loop ()
+    (cond
+      [(box-cas! b old-v new-v)]
+      [(eq? (unbox* b) old-v) (loop)])))
 
 (define buid
   (make-buid-factory))
