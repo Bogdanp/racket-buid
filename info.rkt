@@ -4,7 +4,7 @@
 (define collection "buid")
 (define deps '("base"))
 (define build-deps '("racket-doc"
-                     "rackcheck"
+                     "rackcheck-lib"
                      "rackunit-lib"
                      "scribble-lib"))
 (define scribblings '(("buid.scrbl")))
