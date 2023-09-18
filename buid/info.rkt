@@ -1,11 +1,10 @@
 #lang info
 
 (define license 'BSD-3-Clause)
-(define version "1.0")
 (define collection "buid")
-(define deps '("base"))
+(define deps '("base"
+               "buid-lib"))
 (define build-deps '("racket-doc"
-                     "rackcheck-lib"
-                     "rackunit-lib"
                      "scribble-lib"))
 (define scribblings '(("buid.scrbl")))
+(define implies '("buid-lib"))

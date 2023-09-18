@@ -91,14 +91,8 @@
             ([b (in-bytes bs)])
     (+ (arithmetic-shift n 8) b)))
 
-(module+ test
-  (require rackcheck
-           rackunit)
-
-  (check-property
-   (make-config #:tests 10000)
-   (property ([n gen:natural])
-     (check-eqv? n (unpack (pack n 8))))))
+(module+ private
+  (provide make-buid-string pack unpack))
 
 
 ;; binary representation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -125,23 +119,3 @@
   (make-buid-string
    (unpack (subbytes bs 0 5))
    (unpack (subbytes bs 5))))
-
-(module+ test
-  (define gen:buid
-    (gen:let ([t1 (gen:integer-in 0 #xFFFFFF)]
-              [t2 (gen:integer-in 0 #xFFFF)]
-              [r1 (gen:integer-in 0 (sub1 #xFFFFFF))]
-              [r2 (gen:integer-in 0 (sub1 #xFFFFFF))]
-              [r3 (gen:integer-in 0 (sub1 #xFFFFFF))]
-              [r4 (gen:integer-in 0 (sub1 #xFFFF))])
-      (make-buid-string (+ (arithmetic-shift t1 16)
-                           t2)
-                        (+ (arithmetic-shift r1 64)
-                           (arithmetic-shift r2 40)
-                           (arithmetic-shift r3 16)
-                           r4))))
-
-  (check-property
-   (make-config #:tests 10000)
-   (property ([id gen:buid])
-     (check-equal? id (bytes->buid (buid->bytes id))))))

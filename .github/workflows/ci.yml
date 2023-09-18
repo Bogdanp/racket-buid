@@ -8,12 +8,12 @@ jobs:
       uses: actions/checkout@master
 
     - name: Install Racket
-      uses: Bogdanp/setup-racket@master
+      uses: Bogdanp/setup-racket@v1.10
       with:
-        version: "7.6"
+        version: "8.10"
 
     - name: Install pkg and deps
-      run: raco pkg install --batch --auto --name buid
+      run: raco pkg install --batch --auto buid{-lib,-test,}
 
     - name: Run tests
       run: raco test .
