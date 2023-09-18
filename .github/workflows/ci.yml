@@ -13,7 +13,7 @@ jobs:
         version: "8.10"
 
     - name: Install pkg and deps
-      run: raco pkg install --batch --auto buid{-lib,-test,}
+      run: raco pkg install --batch --auto buid{-lib,-test,}/
 
     - name: Run tests
       run: raco test .
