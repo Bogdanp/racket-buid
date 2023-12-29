@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require racket/contract
+(require racket/contract/base
+         racket/contract/combinator
          racket/math
          racket/random
          "private/base62.rkt")
