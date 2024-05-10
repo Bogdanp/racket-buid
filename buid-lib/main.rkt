@@ -46,8 +46,8 @@
 
 (define (make-buid-string t r)
   (define out-s (make-string 22 #\0))
-  (write-base62-number out-s t 6)
-  (write-base62-number out-s r 21)
+  (base62-into-string! out-s t 6)
+  (base62-into-string! out-s r 21)
   (string->immutable-string out-s))
 
 (define (try-set-box! b old-v new-v)

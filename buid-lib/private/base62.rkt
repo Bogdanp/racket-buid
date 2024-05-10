@@ -1,44 +1,23 @@
 #lang racket/base
 
-(require (for-syntax racket/base
-                     syntax/parse/pre))
-
 (provide
- write-base62-number
+ base62-into-string!
  number->base62-string
  base62-string->number)
 
-(begin-for-syntax
-  (define ALPHABET
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))
-
-(define-syntax (make-lookup-table stx)
-  (syntax-parse stx
-    [(_ n:expr)
-     #:with ((v c) ...) (for/list ([(c i) (in-indexed ALPHABET)])
-                          (list (datum->syntax stx i)
-                                (datum->syntax stx c)))
-     #'(case n
-         [(v) c] ...
-         [else (raise-argument-error 'number->base62-string "a number in the range [0, 62)" n)])]))
-
-(define-syntax (make-reverse-table stx)
-  (syntax-parse stx
-    [(_ c:expr)
-     #:with ((v n) ...) (for/list ([(c i) (in-indexed ALPHABET)])
-                          (list (datum->syntax stx c)
-                                (datum->syntax stx i)))
-     #'(case c
-         [(v) n] ...
-         [else (raise-argument-error 'base62-string->number "a base62 character" c)])]))
+(define NUMBER_TO_CHAR
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+(define CHAR_TO_NUMBER
+  (for/hasheqv ([(c idx) (in-indexed (in-string NUMBER_TO_CHAR))])
+    (values c idx)))
 
 (define (number->char n)
-  (make-lookup-table n))
+  (string-ref NUMBER_TO_CHAR n))
 
 (define (char->number c)
-  (make-reverse-table c))
+  (hash-ref CHAR_TO_NUMBER c))
 
-(define (write-base62-number dst n [end (string-length dst)])
+(define (base62-into-string! dst n [end (sub1 (string-length dst))])
   (let loop ([n   n]
              [idx end])
     (string-set! dst idx (number->char (remainder n 62)))
