@@ -4,6 +4,7 @@
                      syntax/parse/pre))
 
 (provide
+ write-base62-number
  number->base62-string
  base62-string->number)
 
@@ -36,6 +37,13 @@
 
 (define (char->number c)
   (make-reverse-table c))
+
+(define (write-base62-number dst n [end (string-length dst)])
+  (let loop ([n   n]
+             [idx end])
+    (string-set! dst idx (number->char (remainder n 62)))
+    (unless (< n 62)
+      (loop (quotient n 62) (sub1 idx)))))
 
 (define (number->base62-string n)
   (string->immutable-string

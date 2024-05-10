@@ -22,7 +22,7 @@
 ;; to guarantee that monotonically-generated ids during the same
 ;; centisecond can effectively never exhaust the randomness space.
 (define RANDOMNESS_MASK
-  #b0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111)
+  #x7FFFFFFFFFFFFFFFFFFFFF)
 
 (define (current-centiseconds)
   (exact-truncate (/ (- (current-inexact-milliseconds) EPOCH) 10)))
@@ -46,17 +46,16 @@
 
 (define (make-buid-string t r)
   (define out-s (make-string 22 #\0))
-  (define t-str (number->base62-string t))
-  (define r-str (number->base62-string r))
-  (string-copy! out-s (max 0 (- 7  (string-length t-str))) t-str)
-  (string-copy! out-s (max 7 (- 22 (string-length r-str))) r-str)
+  (write-base62-number out-s t 6)
+  (write-base62-number out-s r 21)
   (string->immutable-string out-s))
 
 (define (try-set-box! b old-v new-v)
   (let loop ()
     (cond
       [(box-cas! b old-v new-v)]
-      [(eq? (unbox* b) old-v) (loop)])))
+      [(eq? (unbox* b) old-v) (loop)]
+      [else (void)])))
 
 (define buid
   (make-buid-factory))
