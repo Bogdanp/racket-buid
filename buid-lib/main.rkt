@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require racket/contract/base
+(require file/sha1
+         racket/contract/base
          racket/contract/combinator
          racket/math
          racket/random
@@ -119,3 +120,57 @@
   (make-buid-string
    (unpack (subbytes bs 0 5))
    (unpack (subbytes bs 5))))
+
+
+;; uuid representation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(provide
+ buid->uuid
+ uuid->buid)
+
+(define (buid->uuid v)
+  (define res (make-string 36 #\-))
+  (define hex (bytes->hex-string (buid->bytes v)))
+  (begin0 res
+    (string-copy! res 0  hex 0  8)
+    (string-copy! res 9  hex 8  12)
+    (string-copy! res 14 hex 12 16)
+    (string-copy! res 19 hex 16 20)
+    (string-copy! res 24 hex 20)))
+
+(define (uuid->buid s)
+  (define bs (make-bytes 16))
+  (define len (string-length s))
+  (let loop ([idx 0] [dst 0])
+    (if (< (add1 idx) len) ;; noqa
+        (let ([c0 (string-ref s idx)]
+              [c1 (string-ref s (add1 idx))])
+          (cond
+            [(eqv? c0 #\-)
+             (loop (add1 idx) dst)]
+            [else
+             (define b
+               (+ (* 16 (hexdigit->integer c0))
+                  (hexdigit->integer c1)))
+             (bytes-set! bs dst b)
+             (loop (+ idx 2) (add1 dst))]))
+        (bytes->buid bs))))
+
+(define (hexdigit->integer c)
+  (case c
+    [(#\0) 0]
+    [(#\1) 1]
+    [(#\2) 2]
+    [(#\3) 3]
+    [(#\4) 4]
+    [(#\5) 5]
+    [(#\6) 6]
+    [(#\7) 7]
+    [(#\8) 8]
+    [(#\9) 9]
+    [(#\a #\A) 10]
+    [(#\b #\B) 11]
+    [(#\c #\C) 12]
+    [(#\d #\D) 13]
+    [(#\e #\E) 14]
+    [(#\f #\F) 15]))

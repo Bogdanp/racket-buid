@@ -85,3 +85,15 @@ In binary, BUIDs are represented as 16 bytes, encoded in network order.
   Converts @racket[bs] to a BUID.  Raises an error if the result is
   not a valid BUID.
 }
+
+@defproc[(buid->uuid [b buid/c]) string?]{
+  Returns the UUID representation of @racket[b].
+
+  @history[#:added "1.2"]
+}
+
+@defproc[(uuid->buid [s string?]) buid/c]{
+  Returns the BUID representation of the UUID @racket[s].
+
+  @history[#:added "1.2"]
+}

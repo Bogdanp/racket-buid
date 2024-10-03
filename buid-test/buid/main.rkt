@@ -28,4 +28,9 @@
   (check-property
    (make-config #:tests 10000)
    (property ([id gen:buid])
-     (check-equal? id (bytes->buid (buid->bytes id))))))
+     (check-equal? id (bytes->buid (buid->bytes id)))))
+
+  (check-property
+   (make-config #:tests 10000)
+   (property ([id gen:buid])
+     (check-equal? id (uuid->buid (buid->uuid id))))))
