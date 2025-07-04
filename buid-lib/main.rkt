@@ -16,6 +16,8 @@
   [buid-posix-time (-> buid/c exact-nonnegative-integer?)]
   [buid-randomness (-> buid/c exact-nonnegative-integer?)]))
 
+(define-logger buid)
+
 (define EPOCH
   1586026830000)
 
@@ -52,10 +54,16 @@
   (string->immutable-string out-s))
 
 (define (try-set-box! b old-v new-v)
-  (let loop ()
+  (let loop ([gas 3])
     (cond
       [(box-cas! b old-v new-v)]
-      [(eq? (unbox* b) old-v) (loop)]
+      [(eq? (unbox* b) old-v)
+       (cond
+         [(zero? gas)
+          (void)]
+         [else
+          (log-buid-warning "try-set-box!: spurious failure [~a gas]" gas)
+          (loop (sub1 gas))])]
       [else (void)])))
 
 (define buid
